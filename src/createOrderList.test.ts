@@ -86,6 +86,30 @@ describe('createList push method', () => {
     expect(list2.tail?.id).toBe(2)
   })
 })
+describe('createList with init node', () => {
+  test('length 5 node list', () => {
+    const list = createList()
+    list.push({
+      id: 1,
+    })
+    list.push({
+      id: 2,
+    })
+    list.push({
+      id: 3,
+    })
+    list.push({
+      id: 4,
+    })
+    list.push({
+      id: 5,
+    })
+
+    const list1 = createList(list.head?.next?.next)
+    expect(list.head).toBe(list1.head)
+    expect(list.tail).toBe(list1.tail)
+  })
+})
 
 describe('createList unshift method', () => {
   test('unshift', () => {
@@ -169,6 +193,37 @@ describe('createList unshift method', () => {
     list2.unshiftList(list1)
     expect(list2.head?.id).toBe(1)
     expect(list2.tail?.id).toBe(3)
+  })
+  test('unshift list', () => {
+    const list1 = createList()
+    list1.push({
+      id: 1,
+    })
+    list1.push({
+      id: 2,
+    })
+    list1.push({
+      id: 3,
+    })
+    list1.push({
+      id: 4,
+    })
+    const list2 = createList()
+    list2.push({
+      id: 5,
+    })
+    list2.push({
+      id: 6,
+    })
+    list2.push({
+      id: 7,
+    })
+    list2.push({
+      id: 8,
+    })
+    list2.unshiftList(list1)
+    expect(list2.head?.id).toBe(1)
+    expect(list2.tail?.id).toBe(8)
   })
 })
 
@@ -260,5 +315,50 @@ describe('createOrderList', () => {
     ])
     const result = list.toArray().map((item) => item.id)
     expect(result).toEqual([5, 2, 1, 3, 8, 7, 9, 6])
+  })
+  test('case 2', () => {
+    const list = createOrderList([
+      { id: 1 },
+      { id: 2, before: 1 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 21, before: 1 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 3, after: 1 }, // 这里 after 的意思是自己要排在 id 为 1 元素后面
+      { id: 5, first: true },
+      { id: 6, last: true },
+      { id: 7, after: 8 }, // 这里 after 的意思是自己要排在 id 为 8 元素后面
+      { id: 8 },
+      { id: 9 },
+    ])
+    const result = list.toArray().map((item) => item.id)
+    expect(result).toEqual([5, 2, 21, 1, 3, 8, 7, 9, 6])
+  })
+  test('case 3', () => {
+    const list = createOrderList([
+      { id: 1 },
+      { id: 2, before: 1 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 21, before: 6 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 3, after: 1 }, // 这里 after 的意思是自己要排在 id 为 1 元素后面
+      { id: 5, first: true },
+      { id: 6, last: true },
+      { id: 7, after: 8 }, // 这里 after 的意思是自己要排在 id 为 8 元素后面
+      { id: 8 },
+      { id: 9 },
+    ])
+    const result = list.toArray().map((item) => item.id)
+    expect(result).toEqual([5, 2, 1, 3, 8, 7, 9, 21, 6])
+  })
+  test('case 4', () => {
+    const list = createOrderList([
+      { id: 1 },
+      { id: 2, before: 1 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 21, before: 5 }, // 这里 before 的意思是自己要排在 id 为 1 的元素前面
+      { id: 3, after: 1 }, // 这里 after 的意思是自己要排在 id 为 1 元素后面
+      { id: 5, first: true },
+      { id: 6, last: true },
+      { id: 7, after: 8 }, // 这里 after 的意思是自己要排在 id 为 8 元素后面
+      { id: 8 },
+      { id: 9 },
+    ])
+    const result = list.toArray().map((item) => item.id)
+    expect(result).toEqual([21, 5, 2, 1, 3, 8, 7, 9, 6])
   })
 })
