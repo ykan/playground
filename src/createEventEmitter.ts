@@ -39,13 +39,21 @@ export function createEventEmitter() {
       const context = ensureEventContext(eventName)
       if (context.status === 'running') {
         // console.warn('可能存在循环触发，请检查具体监听回调函数')
+        instance.emit('emit_error', '可能存在循环触发，请检查具体监听回调函数')
         return
       }
       context.status = 'running'
       for (const handler of context.handlers) {
-        const result = handler.apply(instance, args)
+        let result
+        try {
+          result = handler.apply(instance, args)
+        } catch (e) {
+          instance.emit('handler_error', e)
+        }
         if (isPromise(result)) {
-          await result
+          await result.catch((e) => {
+            instance.emit('async_handler_error', e)
+          })
         }
       }
       context.status = 'wait'

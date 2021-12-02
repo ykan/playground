@@ -42,5 +42,27 @@ test('async emit warn', async () => {
     callQueue.push(['callback3', args])
     this.emit('event1')
   })
+  const emitErrorFn = jest.fn()
+  ctx.on('emit_error', emitErrorFn)
   await ctx.emit('event1', 1, 2)
+  expect(emitErrorFn).toHaveBeenCalled()
+})
+
+test('handler has error', async () => {
+  const ctx = createEventEmitter()
+
+  ctx.on('event1', () => {
+    throw new Error('test1')
+  })
+  ctx.on('event1', async () => {
+    await waitTime(10)
+    throw new Error('test2')
+  })
+  const handlerErrorFn = jest.fn()
+  const asyncHandlerErrorFn = jest.fn()
+  ctx.on('handler_error', handlerErrorFn)
+  ctx.on('async_handler_error', asyncHandlerErrorFn)
+  await ctx.emit('event1', 1, 2)
+  expect(handlerErrorFn).toHaveBeenCalled()
+  expect(asyncHandlerErrorFn).toHaveBeenCalled()
 })
