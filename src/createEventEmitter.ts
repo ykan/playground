@@ -11,6 +11,7 @@ export interface EventEmitter {
 
 export function createEventEmitter() {
   const eventMap: Record<string, EventContext> = {}
+  const innerEvents = ['emit_error', 'handler_error', 'async_handler_error']
 
   function ensureEventContext(eventName: string) {
     if (!eventMap[eventName]) {
@@ -26,6 +27,30 @@ export function createEventEmitter() {
     return result && typeof result.then === 'function'
   }
 
+  async function innerEmit(eventName: string, ...args: any[]) {
+    const context = ensureEventContext(eventName)
+    if (context.status === 'running') {
+      // console.warn('可能存在循环触发，请检查具体监听回调函数')
+      innerEmit('emit_error', '可能存在循环触发，请检查具体监听回调函数')
+      return
+    }
+    context.status = 'running'
+    for (const handler of context.handlers) {
+      let result
+      try {
+        result = handler.apply(instance, args)
+      } catch (e) {
+        innerEmit('handler_error', e)
+      }
+      if (isPromise(result)) {
+        await result.catch((e) => {
+          innerEmit('async_handler_error', e)
+        })
+      }
+    }
+    context.status = 'wait'
+  }
+
   const instance: EventEmitter = {
     on(eventName, handler) {
       const context = ensureEventContext(eventName)
@@ -36,27 +61,11 @@ export function createEventEmitter() {
       context.handlers.delete(handler)
     },
     async emit(eventName, ...args) {
-      const context = ensureEventContext(eventName)
-      if (context.status === 'running') {
-        // console.warn('可能存在循环触发，请检查具体监听回调函数')
-        instance.emit('emit_error', '可能存在循环触发，请检查具体监听回调函数')
-        return
+      // 不能发内部错误事件
+      if (innerEvents.includes(eventName)) {
+        throw new Error(`不要触发内部保留事件(${eventName})`)
       }
-      context.status = 'running'
-      for (const handler of context.handlers) {
-        let result
-        try {
-          result = handler.apply(instance, args)
-        } catch (e) {
-          instance.emit('handler_error', e)
-        }
-        if (isPromise(result)) {
-          await result.catch((e) => {
-            instance.emit('async_handler_error', e)
-          })
-        }
-      }
-      context.status = 'wait'
+      await innerEmit(eventName, ...args)
     },
   }
 

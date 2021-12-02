@@ -55,5 +55,8 @@
     "commitizen": {
       "path": "./scripts/cz.js"
     }
+  },
+  "dependencies": {
+    "warning": "^4.0.3"
   }
 }

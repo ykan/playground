@@ -66,3 +66,8 @@ test('handler has error', async () => {
   expect(handlerErrorFn).toHaveBeenCalled()
   expect(asyncHandlerErrorFn).toHaveBeenCalled()
 })
+
+test('emit inner event', async () => {
+  const ctx = createEventEmitter()
+  await expect(ctx.emit('emit_error')).rejects.toThrow()
+})
