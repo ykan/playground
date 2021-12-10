@@ -25,6 +25,11 @@ test('async emit', async () => {
   expect(callQueue[0][1]).toEqual([1, 2])
   expect(callQueue[2][1]).toEqual([1, 2])
   expect(callQueue.map((c) => c[0])).toEqual(['callback1', 'callback3', 'callback2'])
+
+  expect(ctx.stacks[0].callbacks).toHaveLength(2)
+  expect(ctx.stacks[0].callbacks[0].eventStacks).toHaveLength(1)
+
+  // console.log(JSON.stringify(ctx.stacks, null, '  '))
 })
 
 test('async emit warn', async () => {
@@ -46,6 +51,12 @@ test('async emit warn', async () => {
   ctx.on('emit_error', emitErrorFn)
   await ctx.emit('event1', 1, 2)
   expect(emitErrorFn).toHaveBeenCalled()
+})
+
+test('fake instance', () => {
+  const ctx = createEventEmitter()
+  const instance = ctx.fakeInstance([])
+  expect(ctx.stacks !== instance.stacks).toBe(true)
 })
 
 test('handler has error', async () => {
